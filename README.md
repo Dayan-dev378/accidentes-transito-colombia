@@ -1,4 +1,4 @@
-# 🚦 Análisis de Accidentes de Tránsito en Colombia
+# Análisis de Accidentes de Tránsito en Colombia
 
 **Autor:** Dayan Orley Murillo Quiceno  
 **Institución:** Corporación Universitaria Uniremington  
@@ -6,7 +6,7 @@
 
 ---
 
-## 📋 Descripción del proyecto
+## Descripción del proyecto
 
 Este repositorio contiene el análisis exploratorio de datos (EDA) sobre el dataset de **Lesiones en Accidentes de Tránsito** publicado en la plataforma de Datos Abiertos del Gobierno colombiano.
 
@@ -17,7 +17,7 @@ El trabajo replica la metodología del [Diplomado Big Data & Machine Learning �
 
 ---
 
-## 📦 Dataset
+## Dataset
 
 | Campo | Detalle |
 |-------|---------|
@@ -44,23 +44,8 @@ El trabajo replica la metodología del [Diplomado Big Data & Machine Learning �
 ├── 📓 accidentes_transito_colombia.ipynb   ← Notebook principal (EDA completo)
 ├── 📄 README.md                            ← Este archivo
 └── 📂 data/                                ← (opcional) muestra del dataset
-```
 
----
 
-## 🚀 Cómo ejecutar en Google Colab
-
-1. Abre Google Colab: https://colab.research.google.com  
-2. Ve a **Archivo → Abrir cuaderno → GitHub**  
-3. Pega la URL de este repositorio  
-4. Selecciona `accidentes_transito_colombia.ipynb`  
-5. Ejecuta todas las celdas con **Runtime → Run all**
-
-O usa este botón directo (reemplaza `TU_USUARIO` con tu usuario de GitHub):
-
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/TU_USUARIO/accidentes-transito-colombia/blob/main/accidentes_transito_colombia.ipynb)
-
----
 
 ## 📊 Contenido del notebook
 
@@ -73,15 +58,7 @@ O usa este botón directo (reemplaza `TU_USUARIO` con tu usuario de GitHub):
 | **5. EDA y visualizaciones** | Histogramas, barras, líneas, pie, heatmap, boxplots |
 | **6. Conclusiones** | Hallazgos y próximos pasos |
 
----
 
-## 🛠️ Tecnologías
-
-- Python 3.10+
-- Jupyter Notebook / Google Colab
-- pandas · numpy · matplotlib · seaborn
-
----
 
 ## 📚 Referencias
 
