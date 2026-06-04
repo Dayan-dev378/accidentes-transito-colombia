@@ -55,10 +55,11 @@ A continuación se describen las variables utilizadas en el análisis, su tipo, 
 
 | Variable | Tipo | Descripción | Ejemplo / rango |
 |----------|------|-------------|------------------|
-| `fecha` | Fecha (datetime) | Fecha exacta en la que se registró el siniestro vial. Se descompone en año, mes, día de la semana y trimestre para análisis temporal. | `2010-01-01` → presente |
+| `fecha` | Fecha (datetime) | Fecha exacta en la que se registró el siniestro vial. Se descompone en año, mes, día de la semana y hora para análisis temporal. | `2010-01-01` → presente |
 | `año` (derivada) | Entero | Año de ocurrencia, extraído de `fecha`. | 2010 – 2025 |
 | `mes` (derivada) | Entero | Mes del año (1–12). Usado para detectar estacionalidad. | 1 – 12 |
-| `dia_semana` (derivada) | Categórica | Día de la semana derivado de `fecha`. | Lunes, Martes, …, Domingo |
+| `dia_sem` (derivada) | Entero | Día de la semana derivado de `fecha` (0 = Lunes, 6 = Domingo). | 0 – 6 |
+| `hora` (derivada) | Entero | Hora del día en que ocurrió el siniestro, extraída de `fecha`. | 0 – 23 |
 
 #### Variables categóricas
 
@@ -68,6 +69,11 @@ A continuación se describen las variables utilizadas en el análisis, su tipo, 
 | `actor_vial` | Categórica nominal | Tipo de víctima lesionada en el siniestro según su rol en la vía. | • **Peatón**<br>• **Conductor**<br>• **Pasajero**<br>• **Ciclista**<br>• **Motociclista**<br>• **Acompañante** |
 | `departamento` | Categórica nominal | Departamento (división político-administrativa nivel 1) donde ocurrió el siniestro. | 32 departamentos de Colombia + **Bogotá D.C.** (ej. Antioquia, Cundinamarca, Valle del Cauca, Atlántico, Santander, Bolívar, …) |
 | `municipio` | Categórica nominal | Municipio donde ocurrió el siniestro. | Más de **1.100 municipios** del DANE (ej. Medellín, Bogotá, Cali, Barranquilla, Cartagena, …) |
+| `genero` | Categórica nominal | Género de la víctima lesionada en el siniestro. | • **Masculino**<br>• **Femenino**<br>• **No reportado** |
+| `rango_edad` | Categórica ordinal | Rango etario de la víctima, agrupado en intervalos definidos por la Policía Nacional. | Intervalos de edad (ej. 0–14, 15–24, 25–34, 35–44, 45–54, 55–64, 65+) |
+| `clase_vehiculo` | Categórica nominal | Tipo de vehículo involucrado en el siniestro como causante o parte afectada. | • **Motocicleta**<br>• **Automóvil**<br>• **Bus / Buseta**<br>• **Camión**<br>• **Bicicleta**<br>• **Otro** |
+| `estado_victima` | Categórica nominal | Condición física de la víctima al momento del registro del siniestro. | • **Lesionado**<br>• **Muerto**<br>• **Ileso** |
+| `zona` | Categórica nominal | Clasificación del área geográfica donde ocurrió el siniestro. | • **Urbana**<br>• **Rural** |
 | `gravedad` (derivada) | Categórica binaria (objetivo) | Variable objetivo del modelo de ML. Se construye comparando `numero_lesionados` con la mediana global. | • **0 – No grave** (lesionados ≤ mediana)<br>• **1 – Grave** (lesionados > mediana) |
 
 #### Variables numéricas
@@ -81,7 +87,10 @@ A continuación se describen las variables utilizadas en el análisis, su tipo, 
 
 ## Visualización dashboard
 
-El repositorio incluye un **dashboard interactivo** (`dashboard.html`) inspirado en Power BI, que resume los hallazgos principales del análisis exploratorio en una sola vista:
+El repositorio incluye dos formatos de dashboard que resumen los hallazgos del análisis exploratorio:
+
+### `dashboard.html` — Dashboard interactivo (navegador)
+Inspirado en Power BI, se abre directamente en cualquier navegador sin instalación:
 
 - KPIs principales (total de siniestros, lesionados, gravedad promedio, departamentos cubiertos)
 - Evolución temporal de siniestros por mes
@@ -91,6 +100,17 @@ El repositorio incluye un **dashboard interactivo** (`dashboard.html`) inspirado
 
 > Para abrirlo: descarga `dashboard.html` y ábrelo directamente en cualquier navegador. No requiere instalación.
 
+### `dashboard_powerbi_accidentes.png` — Dashboard estático (generado por el notebook)
+El notebook genera automáticamente esta imagen al ejecutar la sección de visualización tipo Power BI. Contiene:
+
+- Encabezado ejecutivo con título del proyecto
+- 4 KPIs: total de registros, número de variables, valores nulos y cobertura geográfica
+- Gráfico de barras horizontales del top 10 por categoría principal
+- Gráfico de torta con participación porcentual
+- Histograma con KDE de la variable numérica principal
+- Heatmap de correlación entre variables numéricas
+- Tabla resumen del dataset
+
 ---
 
 ## Estructura del repositorio
@@ -98,10 +118,11 @@ El repositorio incluye un **dashboard interactivo** (`dashboard.html`) inspirado
 ```
 accidentes-transito-colombia/
 │
-├── accidentes_transito_colombia.ipynb   ← Notebook principal (s01–s09)
-├── dashboard.html                       ← Dashboard interactivo tipo Power BI
-├── README.md                            ← Este archivo
-└── data/                                ← (opcional) muestra del dataset
+├── accidentes_transito_colombia.ipynb      ← Notebook principal (s01–s09 + dashboard)
+├── dashboard.html                          ← Dashboard interactivo tipo Power BI
+├── dashboard_powerbi_accidentes.png        ← Dashboard estático generado por el notebook
+├── README.md                               ← Este archivo
+└── data/                                   ← (opcional) muestra del dataset
 ```
 
 ---
@@ -110,16 +131,70 @@ accidentes-transito-colombia/
 
 | Sesión | Tema | Contenido principal |
 |--------|------|---------------------|
-| **s01** | Entorno Python / Colab | Configuración, clasificación de variables |
-| **s02** | NumPy | Simulación Poisson de lesionados, estadísticas vectorizadas |
-| **s03** | Pandas | Carga vía API Socrata, exploración inicial, dtypes |
-| **s04** | Limpieza & GroupBy | Tratamiento de nulos, One-Hot Encoding, agregaciones |
-| **s05** | Visualización | Matplotlib / Seaborn — histogramas, barras, heatmaps, boxplots |
-| **s06** | Introducción a ML | Definición del problema, split estratificado 80/20 |
-| **s07** | Pipeline & PCA | Imputer + StandardScaler + PCA (~4-5 PCs explican >90% varianza) |
-| **s08** | Clasificación | Logistic Regression, Decision Tree, Random Forest |
-| **s09** | Evaluación | Accuracy, Precision, Recall, F1, AUC-ROC, matrices de confusión |
+| **s01** | Entorno Python / Colab | Configuración del entorno; clasificación de variables en temporales, categóricas y numéricas |
+| **s02** | NumPy | Simulación Poisson (λ=2.3) de lesionados; estadísticas vectorizadas (media, mediana, std, percentiles); segmentación por gravedad; matriz de correlación simulada |
+| **s03** | Pandas | Carga del dataset vía API Socrata (`$limit=50000`); exploración de shape, dtypes, `.describe()`, nulos y cardinalidad de categóricas |
+| **s04** | Limpieza & GroupBy | Normalización de columnas; eliminación de duplicados; conversión de fechas y extracción de `anio`, `mes`, `dia_sem`, `hora`; imputación de nulos; Label Encoding + One-Hot Encoding; GroupBy por tipo, geografía y mes |
+| **s05** | Visualización | **5.1** Histogramas de variables numéricas · **5.2** Barras top 10 tipo de accidente · **5.3** Tendencia temporal por año y mes · **5.4** Distribución geográfica (departamento/municipio) · **5.5** Heatmap de correlación · **5.6** Pie de actor vial · **5.7** Boxplots para detección de outliers |
+| **s06** | Introducción a ML | Construcción de variable objetivo binaria `gravedad` (umbral = mediana); selección de features; split 80/20 estratificado |
+| **s07** | Pipeline & PCA | Pipeline `SimpleImputer + StandardScaler`; PCA completo con gráficos de varianza explicada y acumulada; proyección 2D del conjunto de entrenamiento |
+| **s08** | Clasificación | Entrenamiento de 4 modelos: Dummy baseline, Logistic Regression, Decision Tree (`max_depth=5`), Random Forest (`n_estimators=100`); comparación de accuracy train vs. test; reglas del árbol; importancia de features |
+| **s09** | Evaluación | `classification_report` completo; matrices de confusión; curvas ROC con AUC para todos los modelos; tabla resumen (Accuracy, Precision, Recall, F1, AUC-ROC); selección del modelo final |
+| **Dashboard** | Visualización tipo Power BI | KPIs ejecutivos; barras, torta, histograma KDE, heatmap de correlación, tabla resumen; exportación a `dashboard_powerbi_accidentes.png` |
 
+
+---
+
+## Bibliotecas requeridas
+
+| Biblioteca | Versión mínima recomendada | Uso en el proyecto |
+|------------|----------------------------|--------------------|
+| `numpy` | ≥ 1.24 | Operaciones vectorizadas, simulación Poisson, PCA |
+| `pandas` | ≥ 2.0 | Carga de datos, limpieza, GroupBy, encoding |
+| `matplotlib` | ≥ 3.7 | Histogramas, barras, tendencias temporales, boxplots, dashboard PNG |
+| `seaborn` | ≥ 0.12 | Heatmaps, distribuciones, gráficos de correlación |
+| `scikit-learn` | ≥ 1.3 | Pipeline, PCA, modelos de clasificación, métricas de evaluación |
+
+> Instalación rápida: `pip install numpy pandas matplotlib seaborn scikit-learn`
+
+---
+
+## Cómo ejecutar el notebook
+
+1. **Clonar el repositorio**
+   ```bash
+   git clone <url-del-repositorio>
+   cd accidentes-transito-colombia
+   ```
+
+2. **Instalar dependencias**
+   ```bash
+   pip install numpy pandas matplotlib seaborn scikit-learn
+   ```
+
+3. **Abrir el notebook**
+   - En **Google Colab**: subir `accidentes_transito_colombia.ipynb` o abrirlo desde GitHub.
+   - En **Jupyter local**: ejecutar `jupyter notebook accidentes_transito_colombia.ipynb`.
+
+4. **Ejecutar todas las celdas** en orden (`Kernel → Restart & Run All`).
+   - La celda s03 descarga automáticamente los datos desde la API Socrata. Se requiere conexión a internet.
+   - La sección de Dashboard genera y guarda `dashboard_powerbi_accidentes.png` en el directorio actual.
+
+---
+
+## Conclusiones
+
+| Sesión | Hallazgo principal |
+|--------|-------------------|
+| **s01** | Entorno configurado; variables del problema clasificadas en temporales, categóricas y numéricas |
+| **s02** | Distribución Poisson del nº de lesionados (λ ≈ 2,3); ~15–20% de accidentes con más de 3 lesionados (graves) |
+| **s03** | Dataset con más de 5.000 registros, varias columnas con nulos (<5%), sin estructuras irregulares graves |
+| **s04** | Limpieza exitosa (0 nulos finales); OHE para tipo_accidente y actor_vial; GroupBy revela concentración geográfica en departamentos capitales |
+| **s05** | Accidentalidad se concentra en ciertos meses del año; el choque es el tipo más frecuente; departamentos con capital grande lideran los registros |
+| **s06** | Problema binario definido: **grave (> mediana de lesionados) vs. no grave**; split 80/20 estratificado garantiza representatividad |
+| **s07** | Pipeline `Imputer + StandardScaler` normaliza correctamente los datos; ~4–5 componentes principales explican más del 90% de la varianza |
+| **s08** | **Random Forest** supera a Logistic Regression y Decision Tree en accuracy; la variable más importante es el tipo de accidente |
+| **s09** | La accuracy sola es engañosa con clases desbalanceadas; **Random Forest** obtiene el mejor F1-Score y AUC-ROC → modelo seleccionado para producción |
 
 ---
 
